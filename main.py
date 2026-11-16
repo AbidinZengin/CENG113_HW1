@@ -357,28 +357,212 @@ def main():
             generate_meeting_report(select_department())
         elif choice == 4:
             display_meeting_report(select_department())
-        elif choice >= 5 and choice <= 6:
-            print("This option is not available yet.")
+        elif choice == 5:
+            review_meeting_report(select_department())
+        elif choice == 6:
+            display_task_summary(select_department())
         else:
             print("Invalid Choice")
 
+
 def display_meeting_report(department):
-    print("ekliyorum")
+    try:
+        with open(f"meeting_report_{department}.txt", "r") as f:
+            while True:
+                line = f.readline()
+                if line == "":
+                    break
+                else:
+                    print(line, end="")
+    except FileNotFoundError:
+        print("No meeting report found for this department.")
+        return
+
 
 def authenticate_manager(manager_id, password, department):
-    print("ekliyorum")
+    deptname = get_department_name(department)
+    try:
+        with open("employees.txt", "r") as f:
+            while True:
+                employee_id = f.readline().strip()
+                if employee_id == "":
+                    break
+
+                f.readline()
+                f.readline()
+                f.readline()
+                depart = f.readline().strip()
+                role = f.readline().strip()
+                f.readline()
+
+                if employee_id == str(manager_id) and depart == deptname and role == "Manager":
+                    try:
+                        with open("manager_passwords.txt", "r") as file:
+                            while True:
+                                id_check = file.readline().strip()
+                                if id_check == "":
+                                    break
+                                password_check = file.readline().strip()
+                                file.readline()
+
+                                if id_check == employee_id and password_check == password:
+                                    return True
+
+                    except FileNotFoundError:
+                        print("Manager passwords file not found")
+                        return False
+                    break
+    except FileNotFoundError:
+        print("Employees file not found.")
+        return False
+
+    return False
+
 
 def review_meeting_report(department):
-    print("ekliyorum")
+    global manager_id
+    attempts = 0
+
+    try:
+        with open(f"meeting_report_{department}.txt", "r") as f:
+            pass
+    except FileNotFoundError:
+        print("No meeting report found.")
+        return
+
+    status = read_review_line(department, 1)
+    if status == "Approved" or status == "Rejected":
+        print(status)
+        return
+
+    if status != "Pending Approval":
+        print("Invalid or missing report status.")
+        return
+
+    login_successful = False
+
+    while attempts < 3:
+        attempts += 1
+
+        manager_id = input("Please write your employee ID: ")
+        password = input("Please write your Manager password: ")
+        if authenticate_manager(manager_id, password, department) == True:
+            print("Login successful.")
+            login_successful = True
+            break
+        else:
+            print("Invalid manager ID or password, or unauthorized department.")
+
+    if attempts == 3 and login_successful == False:
+        print("Max attempts reached.")
+        return
+
+    display_meeting_report(department)
+
+    while True:
+        print("1. Approve")
+        print("2. Reject")
+        print("3. Cancel")
+        choice = input("Enter your choice:")
+
+        if choice == "1":
+            status = "Approved"
+            comment = input("Please write your comment: ").strip()
+            if comment == "":
+                comment = "-"
+            break
+        elif choice == "2":
+            status = "Rejected"
+            while True:
+                comment = input("Please write your comment: ").strip()
+                if comment == "":
+                    print("Rejection comment cannot be empty.")
+                else:
+                    break
+            break
+        elif choice == "3":
+            return
+
+        else:
+            print("Invalid choice.")
+
+    try:
+        with open("employees.txt", "r") as f:
+            while True:
+                employee_id = f.readline().strip()
+                if employee_id == "":
+                    break
+
+                first_name = f.readline().strip()
+                last_name = f.readline().strip()
+                f.readline()
+                f.readline()
+                f.readline()
+                f.readline()
+
+                if manager_id == employee_id:
+                    reviewer_name = first_name + " " + last_name
+                    break
+    except FileNotFoundError:
+        print("Employees file not found.")
+        return
+
+    meeting_date = read_review_line(department, 5)
+    meeting_note = read_review_line(department, 6)
+
+    write_review_file(department, status, manager_id, reviewer_name, comment, meeting_date, meeting_note)
+    write_meeting_report(department, status, manager_id, reviewer_name, comment, meeting_date, meeting_note)
+    print(f"Report status: {status}.")
+
 
 def display_task_summary(department):
-    print("ekliyorum")
+    deptname = get_department_name(department)
+    employee_count = 0
+    task_count = 0
+    total_hours = 0
+    try:
+        with open("employees.txt", "r") as f:
+            while True:
+                id = f.readline().strip()
+                if id == "":
+                    break
+
+                f.readline()
+                f.readline()
+                f.readline()
+                depart = f.readline().strip()
+                f.readline()
+                f.readline()
+
+                if deptname == depart:
+                    employee_count += 1
+    except FileNotFoundError:
+        print("Employees file not found.")
+        return
+
+    try:
+        with open(f"tasks_{department}.txt", "r") as f:
+            while True:
+                id = f.readline().strip()
+                if id == "":
+                    break
+                f.readline()
+                time = f.readline().strip()
+                f.readline()
+                task_count += 1
+                total_hours += int(time)
+    except FileNotFoundError:
+        print("No tasks  found for this department.")
+
+    if task_count > 0:
+        average = f"{total_hours / task_count:.2f}"
+    else:
+        average = "N/A"
+
+    print(f"Department: {deptname}\nNumber of employees: {employee_count}\nNumber of assigned tasks: {task_count}\nTotal estimated hours: {total_hours}\nAverage hours per task:{average}")
+
+
 
 
 main()
-
-    
-    
-    
-    
 
