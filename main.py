@@ -355,10 +355,24 @@ def main():
             assign_weekly_tasks(select_department())
         elif choice == 3:
             generate_meeting_report(select_department())
-        elif choice >= 4 and choice <= 6:
+        elif choice == 4:
+            display_meeting_report(select_department())
+        elif choice >= 5 and choice <= 6:
             print("This option is not available yet.")
         else:
             print("Invalid Choice")
+
+def display_meeting_report(department):
+    print("ekliyorum")
+
+def authenticate_manager(manager_id, password, department):
+    print("ekliyorum")
+
+def review_meeting_report(department):
+    print("ekliyorum")
+
+def display_task_summary(department):
+    print("ekliyorum")
 
 
 main()
