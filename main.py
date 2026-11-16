@@ -1,9 +1,11 @@
 
 # CENG113 HOMEWORK 1
 
-#----------------------------------------------------------------------#
 #THIS FIELD FOR TASK 1: Display department employees
-#----------------------------------------------------------------------#
+# We use select_department() for returning a number but also we use get_department_name()
+# for representing choice of department and display
+
+
 # This method ask user to their department turn it to a corresponding integer value
 def select_department():
     print("Software Development | 1")
@@ -51,7 +53,7 @@ def display_employees(department):
                          # Data in file generaly repetition of seperated seven lines 
                          
             first_name = employees.readline().strip()     
-            last_name = employees.readline().strip()   # We catch seven lines each loop
+            last_name = employees.readline().strip()   # We catch seven lines in each loop
             job = employees.readline().strip()            
             depart = employees.readline().strip()  
             role = employees.readline() .strip()        
@@ -65,13 +67,11 @@ def display_employees(department):
                 print(f"Role : {role}")
                 print("-" * 25)
                 
-#----------------------------------------------------------------------#
 
 
 
-#----------------------------------------------------------------------#
 #THIS FIELD FOR TASK 2 : Assign weekly tasks 
-#----------------------------------------------------------------------#
+# We generally use same methodology for accessing data, known file body means place data to correct form 0-7
 
 # Returns True if tasks_N.txt exists and already holds at least one assignment
 def tasks_exist(department):
@@ -104,8 +104,8 @@ def assign_weekly_tasks(department):
                 if id == "":
                     break
 
-                first_name = employees.readline().strip() # We never used this data just for skipping to department
-                last_name = employees.readline().strip()
+                first_name = employees.readline().strip()  # We never used this data just for skipping to department we want
+                last_name = employees.readline().strip()   
                 job = employees.readline().strip()
                 depart = employees.readline().strip()
                 role = employees.readline().strip()
@@ -135,36 +135,15 @@ def assign_weekly_tasks(department):
                     task.write(f"{description}\n")
                     task.write(f"{hour}\n")
                     task.write("\n")
-#----------------------------------------------------------------------#
 
 
 
-#----------------------------------------------------------------------#
 #THIS FIELD FOR TASK 3 : Generate meeting report 
-#----------------------------------------------------------------------#
- 
-# Counts how many task records in tasks_n.txt belong to this employee id
-def count_task_records(department, id):
-    count = 0           # task files has four repetative lines 
-    try:
-        with open(f"tasks_{department}.txt", "r") as tasks:
-            while True:  # task files has four repetative lines
-                task_id = tasks.readline().strip()  
-                if task_id == "":              # we access data thru 4 lines
-                    break                       
-                tasks.readline()                # description
-                tasks.readline()                # hours
-                tasks.readline()                
-                if task_id == id:
-                    count += 1 
-    except FileNotFoundError:                   # No tasks saved yet, so count stays 0
-        pass
-    return count
+# There are some helper functions here that read and write the task and review files, so other tasks can reuse them
 
-
-# Returns the description (field 2) or the hours (field 3) of the employee's task
-def read_task_field(department, id, field):     # Ease of reading data when we have id and dept 
-    try:
+# Returns the description num = 2 or the hours num = 3 of the employee's task
+def read_task_field(department, id, num):     # Ease of reading data when we have id and department
+    try:                                      # We already know the body of file so also which data placed where
         with open(f"tasks_{department}.txt", "r") as tasks:
             while True:
                 task_id = tasks.readline().strip()
@@ -174,13 +153,12 @@ def read_task_field(department, id, field):     # Ease of reading data when we h
                 hours = tasks.readline().strip()    
                 tasks.readline() 
                 if task_id == id:   # field 2 for command description field 3 for hours
-                    if field == 2:
+                    if num == 2:
                         return description
                     return hours
     except FileNotFoundError:
         pass
     return "" # Returns "" if the employee has no task
-
 
 
 # Report can be generated only if every employee of the department has exactly one valid task
@@ -220,7 +198,6 @@ def tasks_are_complete(department):
         print("employees.txt could not be found.")
         return False
 
-
 # Returns the given line of review_N.txt
 def read_review_line(department, line_number):
     try:
@@ -232,7 +209,6 @@ def read_review_line(department, line_number):
     except FileNotFoundError:                   # Missing review file is the expected initial condition
         return ""
 
-
 # Saves the six review lines: status, reviewer id, reviewer name, comment, meeting date, meeting note
 def write_review_file(department, status, reviewer_id, reviewer_name, comment, meeting_date, meeting_note):
     with open(f"review_{department}.txt", "w") as review:
@@ -242,7 +218,6 @@ def write_review_file(department, status, reviewer_id, reviewer_name, comment, m
         review.write(f"{comment}\n")
         review.write(f"{meeting_date}\n")
         review.write(f"{meeting_note}\n")
-
 
 # Builds the meeting_report_N.txt from employees.txt and the saved tasks
 def write_meeting_report(department, status, reviewer_id, reviewer_name, comment, meeting_date, meeting_note):
@@ -321,12 +296,207 @@ def generate_meeting_report(department):
     write_meeting_report(department, "Pending Approval", "-", "-", "-", meeting_date, meeting_note)
     print("Meeting report generated. Status: Pending Approval")
 
-#----------------------------------------------------------------------#
-#THIS FIELD FOR THE MAIN MENU
-#----------------------------------------------------------------------#
 
+
+
+#THIS FIELD FOR TASK 4 : Display meeting report 
+# Task 4 just for displaying meeting report 
+def display_meeting_report(department):
+    try:
+        with open(f"meeting_report_{department}.txt", "r") as report:
+            line = report.readline()          # we only need to show everything in a meeting report file
+            while line != "":                
+                print(line,end="")
+                line = report.readline()      
+    except FileNotFoundError:             # again for handling non existing file error
+        print("There is no report. ")
+        pass
+
+    
+
+#THIS FIELD FOR TASK 5 : Reviewing meeting report 
+# Here firstly we need to authenticate user whether is a manager or not 
+# Then we can review meeting reports 
+
+
+# This method is just a helper method for other tasks which uses employees full name 
+def get_employee_full_name(employee_id):      # Used for reducing repetatively cases
+    full_name = ""
+    with open("employees.txt", "r") as employees:
+        id = employees.readline().strip()
+        while id != "" and full_name == "":   # stop when the file ends or the person is found
+            first_name = employees.readline().strip()
+            last_name = employees.readline().strip()
+            employees.readline()              # title
+            employees.readline()              # department
+            employees.readline()              # role
+            employees.readline()              #blank line
+            if (id==employee_id):
+                full_name =first_name+" "+last_name
+            id = employees.readline().strip()
+    return full_name
+
+
+#This method verify whether specified id , password and department is matched for employee's role department and password file datas.
+def authenticate_manager(manager_id, password, department):
+    deptname = get_department_name(department)
+    is_dept_manager = False
+    try: 
+        with open("employees.txt", "r") as employees:
+            id = employees.readline().strip()
+            while id != "" and not is_dept_manager:   # we check condition extra after finding manager it means loop ends here.
+                employees.readline()          # first name
+                employees.readline()          # last name
+                employees.readline()          # title
+                depart = employees.readline().strip()
+                role = employees.readline().strip()
+                employees.readline()          # blank line
+                if(id==manager_id and role=="Manager" and depart==deptname): # we catch here intented conditions 
+                    is_dept_manager=True                                     # where role is manager for asked id employee
+             
+                id = employees.readline().strip()    #next employee id we have to  get this 
+    
+    except FileNotFoundError:     
+        print("employees.txt could not be found.")
+        return False
+
+    if not is_dept_manager:    # Now we found the manager role and department is matched for asked id 
+        return False           # We need to verify for password now
+
+    password_ok = False
+    try:
+        with open("manager_passwords.txt", "r") as passwords:
+            saved_id = passwords.readline().strip()        
+            while saved_id != "" and not password_ok:    # we only access id and password iteratively 
+                saved_password = passwords.readline().strip()
+                passwords.readline()          # blank line
+                if (saved_id == manager_id and saved_password==password): 
+                     password_ok=True
+                saved_id = passwords.readline().strip()
+    except FileNotFoundError:
+        print("manager_passwords.txt could not be found.")
+        return False
+
+    return password_ok
+
+# Lets a manager of the department approve or reject a "Pending Approval" meeting report after login.
+def review_meeting_report(department):
+    status = read_review_line(department, 1)   #check current status first
+    if status=="" :
+        print("There is no report.")   
+        return
+    if (status!="Pending Approval"):               # Only reports with the status Pending Approval can be reviewed
+            print(f"This report is already {status}.")
+            return
+
+    attempts = 0  # Only at most three attempts for login
+    logged_in = False
+    while attempts < 3 and not logged_in:
+        manager_id = input("Enter Manager ID: ")  # Get manager id and pwassword from user
+        password = input("Enter Password: ")      
+        if authenticate_manager(manager_id, password, department):
+            logged_in = True
+        else:
+            print("Invalid manager ID or password, or unauthorized department.")
+        attempts += 1
+
+    if not logged_in:
+        return                                # 3 failed attempts means back to menu 
+
+    display_meeting_report(department)        # show the report after login
+
+    #what do you want to do with this report
+    decision = ""
+    while decision != "1" and decision != "2" and decision != "3":
+        decision = input("1. Approve  2. Reject  3. Cancel: ").strip()
+
+    if decision == "3":                    #if review meeting cancel it will occur
+        print("Review cancelled. No changes were made.")   
+        return
+
+    if decision == "1":
+            new_status = "Approved"
+            comment = input("Approval comment (optional): ").strip()
+            if comment == "":
+                comment = "-"
+    else:
+            new_status = "Rejected"
+            comment = input("Rejection comment: ").strip()
+            while comment == "":                  
+                print("Rejection comment cannot be empty.")  #We have give rejection comment
+                comment = input("Rejection comment: ").strip()
+
+
+    reviewer_name = get_employee_full_name(manager_id)       #we already define a helper funtion to this request
+    meeting_date = read_review_line(department, 5)   #meeting date on the 5. line on the review report
+    meeting_note = read_review_line(department, 6)  #meeting date meeting note on the 6. line on the review report
+    write_review_file(department, new_status, manager_id, reviewer_name, comment, meeting_date, meeting_note)  #write func hast hese parameters check
+    write_meeting_report(department, new_status, manager_id, reviewer_name, comment, meeting_date, meeting_note) #report has same columns
+    print(f"Report {new_status}.")
+
+
+
+
+#THIS FIELD FOR TASK 6 : Displaying Task Summary 
+# Counts how many task records in tasks_n.txt belong to this employee id
+def count_task_records(department, id):
+    count = 0           # task files has four repetative lines 
+    try:
+        with open(f"tasks_{department}.txt", "r") as tasks:
+            while True:  # task files has four repetative lines
+                task_id = tasks.readline().strip()  
+                if task_id == "":              # we access data thru 4 lines
+                    break                       
+                tasks.readline()                # description
+                tasks.readline()                # hours
+                tasks.readline()                
+                if task_id == id:
+                    count += 1 
+    except FileNotFoundError:                   # No tasks saved yet, so count stays 0
+        pass
+    return count
+
+# This method isplays the department employee count, number of assigned tasks, total estimated hours and average hours per assigned task.
+def display_task_summary(department):
+    deptname = get_department_name(department)
+    employee_count = 0
+    task_count = 0
+    total_hours = 0
+    try:
+        with open("employees.txt", "r") as employees: 
+            id = employees.readline().strip()
+            while id != "":
+                employees.readline()
+                employees.readline()
+                employees.readline()
+                depart = employees.readline().strip()
+                employees.readline()
+                employees.readline()
+                if depart == deptname:
+                    employee_count += 1  
+                    if count_task_records(department, id) > 0:   # we already have helper method to count tasks 
+                        task_count += 1
+                        total_hours += int(read_task_field(department, id, 3))  # result of function already a number 
+                id = employees.readline().strip()                               # so we do not need to handle value converting error
+    except FileNotFoundError:
+        print("employees.txt could not be found.")
+        return
+
+    print(f"Department: {deptname}")                
+    print(f"Number of employes: {employee_count}")
+    print(f"Assigned tasks: {task_count}")
+    print(f"Total estimated hours: {total_hours}")
+    if task_count == 0:
+        print("Average hours per task: N/A")
+    else:
+        print(f"Average hours per task: {total_hours / task_count:.2f}")  #formatted
+
+
+
+
+#THIS FIELD FOR THE MAIN MENU
 # Displays the main menu
-def display_menu():
+def display_menu():                            
     print("\n1. Display department employees")
     print("2. Assign weekly tasks")
     print("3. Generate meeting report")
@@ -342,12 +512,13 @@ def main():
         display_menu()
         try:            # Converting input to integer can raise ValueError
             choice = int(input("Enter your choice: "))
+            print()
         except ValueError:
             print("Invalid Choice")
             continue
 
         if choice == 0:
-            print("Goodbye")
+            print("Program has ended!")
             break
         elif choice == 1:
             display_employees(select_department())
@@ -355,11 +526,12 @@ def main():
             assign_weekly_tasks(select_department())
         elif choice == 3:
             generate_meeting_report(select_department())
-        elif choice >= 4 and choice <= 6:
-            print("This option is not available yet.")
-        else:
-            print("Invalid Choice")
-
+        elif choice ==4:
+            display_meeting_report(select_department())
+        elif choice ==5:
+            review_meeting_report(select_department())
+        elif choice == 6:
+            display_task_summary(select_department())
 
 main()
 
